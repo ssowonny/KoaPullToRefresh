@@ -285,7 +285,7 @@ static char UIScrollViewPullToRefreshView;
         if (self.scrollView.contentOffset.y > -KoaPullToRefreshViewHeightShowed && self.scrollView.contentOffset.y < 0) {
             [self.scrollView setContentInset:UIEdgeInsetsMake(abs(self.scrollView.contentOffset.y), self.scrollView.contentInset.left, self.scrollView.contentInset.bottom, self.scrollView.contentInset.right)];
         }else if(self.scrollView.contentOffset.y > -KoaPullToRefreshViewHeightShowed) {
-            [self.scrollView setContentInset:UIEdgeInsetsZero];
+            [self.scrollView setContentInset:UIEdgeInsetsMake(0, self.scrollView.contentInset.left, self.scrollView.contentInset.bottom, self.scrollView.contentInset.right)];
         }else{
             [self.scrollView setContentInset:UIEdgeInsetsMake(KoaPullToRefreshViewHeightShowed, self.scrollView.contentInset.left, self.scrollView.contentInset.bottom, self.scrollView.contentInset.right)];
         }
