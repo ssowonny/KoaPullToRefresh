@@ -12,10 +12,6 @@
 #define fequal(a,b) (fabs((a) - (b)) < FLT_EPSILON)
 #define fequalzero(a) (fabs(a) < FLT_EPSILON)
 
-static CGFloat KoaPullToRefreshViewHeight = 82;
-static CGFloat KoaPullToRefreshViewHeightShowed = 0;
-static CGFloat KoaPullToRefreshViewTitleBottomMargin = 12;
-
 @interface KoaPullToRefreshView ()
 
 @property (nonatomic, copy) void (^pullToRefreshActionHandler)(void);
@@ -41,8 +37,41 @@ static CGFloat KoaPullToRefreshViewTitleBottomMargin = 12;
 
 static char UIScrollViewPullToRefreshView;
 
+@interface UIScrollView (KoaPullToRefresh_Private)
+@property (nonatomic, assign) CGFloat pullToRefreshViewHeight;
+@property (nonatomic, assign) CGFloat pullToRefreshViewHeightShowed;
+@property (nonatomic, assign) CGFloat pullToRefreshViewTitleBottomMargin;
+@end
+
 @implementation UIScrollView (KoaPullToRefresh)
 @dynamic pullToRefreshView, showsPullToRefresh;
+
+- (CGFloat)pullToRefreshViewHeight {
+    NSNumber* height = objc_getAssociatedObject(self, @"pullToRefreshViewHeight");
+    return [height floatValue];
+}
+
+- (void)setPullToRefreshViewHeight:(CGFloat)height {
+    objc_setAssociatedObject(self, @"pullToRefreshViewHeight", [NSNumber numberWithFloat:height], OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
+
+- (CGFloat)pullToRefreshViewHeightShowed {
+    NSNumber* height = objc_getAssociatedObject(self, @"pullToRefreshViewHeightShowed");
+    return [height floatValue];
+}
+
+- (void)setPullToRefreshViewHeightShowed:(CGFloat)height {
+    objc_setAssociatedObject(self, @"pullToRefreshViewHeightShowed", [NSNumber numberWithFloat:height], OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
+
+- (CGFloat)pullToRefreshViewTitleBottomMargin {
+    NSNumber* height = objc_getAssociatedObject(self, @"pullToRefreshViewTitleBottomMargin");
+    return [height floatValue];
+}
+
+- (void)setPullToRefreshViewTitleBottomMargin:(CGFloat)height {
+    objc_setAssociatedObject(self, @"pullToRefreshViewTitleBottomMargin", [NSNumber numberWithFloat:height], OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
 
 - (void)addPullToRefreshWithActionHandler:(void (^)(void))actionHandler {
     [self addPullToRefreshWithActionHandler:actionHandler withBackgroundColor:[UIColor grayColor]];
@@ -50,32 +79,32 @@ static char UIScrollViewPullToRefreshView;
 
 - (void)addPullToRefreshWithActionHandler:(void (^)(void))actionHandler
                   withBackgroundColor:(UIColor *)customBackgroundColor {
-    [self addPullToRefreshWithActionHandler:actionHandler withBackgroundColor:customBackgroundColor withPullToRefreshHeightShowed:KoaPullToRefreshViewHeightShowed];
+    [self addPullToRefreshWithActionHandler:actionHandler withBackgroundColor:customBackgroundColor withPullToRefreshHeightShowed:0];
 }
 
 - (void)addPullToRefreshWithActionHandler:(void (^)(void))actionHandler
                       withBackgroundColor:(UIColor *)customBackgroundColor
             withPullToRefreshHeightShowed:(CGFloat)pullToRefreshHeightShowed {
     
-    //KoaPullToRefreshViewHeight = pullToRefreshHeight;
-    KoaPullToRefreshViewHeightShowed = pullToRefreshHeightShowed;
-    KoaPullToRefreshViewTitleBottomMargin += pullToRefreshHeightShowed;
+    self.pullToRefreshViewHeight = 82;
+    self.pullToRefreshViewHeightShowed = pullToRefreshHeightShowed;
+    self.pullToRefreshViewTitleBottomMargin = 20;
     
-    [self setContentInset:UIEdgeInsetsMake(KoaPullToRefreshViewHeightShowed, self.contentInset.left, self.contentInset.bottom, self.contentInset.right)];
+    [self setContentInset:UIEdgeInsetsMake(self.pullToRefreshViewHeightShowed, self.contentInset.left, self.contentInset.bottom, self.contentInset.right)];
     
     if (!self.pullToRefreshView) {
         
         //Initial y position
-        CGFloat yOrigin = -KoaPullToRefreshViewHeight;
+        CGFloat yOrigin = self.pullToRefreshViewHeightShowed - self.pullToRefreshViewHeight;
         
         //Put background extra to fill top white space
-        UIView *backgroundExtra = [[UIView alloc] initWithFrame:CGRectMake(0, -KoaPullToRefreshViewHeight*8, self.bounds.size.width, KoaPullToRefreshViewHeight*8)];
+        UIView *backgroundExtra = [[UIView alloc] initWithFrame:CGRectMake(0, - self.pullToRefreshViewHeight * 8, self.bounds.size.width, self.pullToRefreshViewHeight * 8)];
         [backgroundExtra setAutoresizingMask:UIViewAutoresizingFlexibleWidth];
         [backgroundExtra setBackgroundColor:customBackgroundColor];
         [self addSubview:backgroundExtra];
         
         //Init pull to refresh view
-        KoaPullToRefreshView *view = [[KoaPullToRefreshView alloc] initWithFrame:CGRectMake(0, yOrigin, self.bounds.size.width, KoaPullToRefreshViewHeight + KoaPullToRefreshViewHeightShowed)];
+        KoaPullToRefreshView *view = [[KoaPullToRefreshView alloc] initWithFrame:CGRectMake(0, yOrigin, self.bounds.size.width, self.pullToRefreshViewHeight + self.pullToRefreshViewHeightShowed)];
         view.pullToRefreshActionHandler = actionHandler;
         view.scrollView = self;
         view.backgroundColor = customBackgroundColor;
@@ -118,8 +147,8 @@ static char UIScrollViewPullToRefreshView;
             [self addObserver:self.pullToRefreshView forKeyPath:@"frame" options:NSKeyValueObservingOptionNew context:nil];
             self.pullToRefreshView.isObserving = YES;
             
-            CGFloat yOrigin = -KoaPullToRefreshViewHeight;
-            self.pullToRefreshView.frame = CGRectMake(0, yOrigin, self.bounds.size.width, KoaPullToRefreshViewHeight + KoaPullToRefreshViewHeightShowed);
+            CGFloat yOrigin = self.pullToRefreshViewHeightShowed - self.pullToRefreshViewHeight;
+            self.pullToRefreshView.frame = CGRectMake(0, yOrigin, self.bounds.size.width, self.pullToRefreshViewHeight + self.pullToRefreshViewHeightShowed);
         }
     }
 }
@@ -189,7 +218,7 @@ static char UIScrollViewPullToRefreshView;
     
     //Set title frame
     CGSize titleSize = [self.titleLabel.text sizeWithFont:self.titleLabel.font constrainedToSize:CGSizeMake(labelMaxWidth,self.titleLabel.font.lineHeight) lineBreakMode:self.titleLabel.lineBreakMode];
-    CGFloat titleY = KoaPullToRefreshViewHeight - KoaPullToRefreshViewHeightShowed - titleSize.height - KoaPullToRefreshViewTitleBottomMargin;
+    CGFloat titleY = self.scrollView.pullToRefreshViewHeight - self.scrollView.pullToRefreshViewHeightShowed - titleSize.height - self.scrollView.pullToRefreshViewTitleBottomMargin;
     
     [self.titleLabel setFrame:CGRectIntegral(CGRectMake(0, titleY, self.frame.size.width, titleSize.height))];
     
@@ -248,9 +277,8 @@ static char UIScrollViewPullToRefreshView;
     else if([keyPath isEqualToString:@"contentSize"]) {
         [self layoutSubviews];
         
-        CGFloat yOrigin;
-        yOrigin = -KoaPullToRefreshViewHeight;
-        self.frame = CGRectMake(0, yOrigin, self.bounds.size.width, KoaPullToRefreshViewHeight);
+        CGFloat yOrigin = self.scrollView.pullToRefreshViewHeightShowed - self.scrollView.pullToRefreshViewHeight;
+        self.frame = CGRectMake(0, yOrigin, self.bounds.size.width, self.scrollView.pullToRefreshViewHeight);
     }
     else if([keyPath isEqualToString:@"frame"])
         [self layoutSubviews];
@@ -259,7 +287,7 @@ static char UIScrollViewPullToRefreshView;
 - (void)scrollViewDidScroll:(CGPoint)contentOffset {
     
     //Change title label alpha
-    [self.titleLabel setAlpha: ((contentOffset.y * -1) / KoaPullToRefreshViewHeight) - 0.1];
+    [self.titleLabel setAlpha: ((contentOffset.y * -1) / self.scrollView.pullToRefreshViewHeight) - 0.1];
     
     if(self.state != KoaPullToRefreshStateLoading) {
         CGFloat scrollOffsetThreshold;
@@ -282,12 +310,12 @@ static char UIScrollViewPullToRefreshView;
     
     //Set content offset for special cases
     if(self.state != KoaPullToRefreshStateLoading) {
-        if (self.scrollView.contentOffset.y > -KoaPullToRefreshViewHeightShowed && self.scrollView.contentOffset.y < 0) {
+        if (self.scrollView.contentOffset.y > - self.scrollView.pullToRefreshViewHeightShowed && self.scrollView.contentOffset.y < 0) {
             [self.scrollView setContentInset:UIEdgeInsetsMake(abs(self.scrollView.contentOffset.y), self.scrollView.contentInset.left, self.scrollView.contentInset.bottom, self.scrollView.contentInset.right)];
-        }else if(self.scrollView.contentOffset.y > -KoaPullToRefreshViewHeightShowed) {
-            [self.scrollView setContentInset:UIEdgeInsetsMake(0, self.scrollView.contentInset.left, self.scrollView.contentInset.bottom, self.scrollView.contentInset.right)];
+        }else if(self.scrollView.contentOffset.y > - self.scrollView.pullToRefreshViewHeightShowed) {
+            [self.scrollView setContentInset:UIEdgeInsetsMake(self.originalTopInset, self.scrollView.contentInset.left, self.scrollView.contentInset.bottom, self.scrollView.contentInset.right)];
         }else{
-            [self.scrollView setContentInset:UIEdgeInsetsMake(KoaPullToRefreshViewHeightShowed, self.scrollView.contentInset.left, self.scrollView.contentInset.bottom, self.scrollView.contentInset.right)];
+            [self.scrollView setContentInset:UIEdgeInsetsMake(self.scrollView.pullToRefreshViewHeightShowed, self.scrollView.contentInset.left, self.scrollView.contentInset.bottom, self.scrollView.contentInset.right)];
         }
     }
 }
