@@ -313,7 +313,7 @@ static char UIScrollViewPullToRefreshView;
         if (self.scrollView.contentOffset.y > - self.scrollView.pullToRefreshViewHeightShowed && self.scrollView.contentOffset.y < 0) {
             [self.scrollView setContentInset:UIEdgeInsetsMake(abs(self.scrollView.contentOffset.y), self.scrollView.contentInset.left, self.scrollView.contentInset.bottom, self.scrollView.contentInset.right)];
         }else if(self.scrollView.contentOffset.y > - self.scrollView.pullToRefreshViewHeightShowed) {
-            [self.scrollView setContentInset:UIEdgeInsetsMake(self.originalTopInset, self.scrollView.contentInset.left, self.scrollView.contentInset.bottom, self.scrollView.contentInset.right)];
+            [self.scrollView setContentInset:UIEdgeInsetsMake(0, self.scrollView.contentInset.left, self.scrollView.contentInset.bottom, self.scrollView.contentInset.right)];
         }else{
             [self.scrollView setContentInset:UIEdgeInsetsMake(self.scrollView.pullToRefreshViewHeightShowed, self.scrollView.contentInset.left, self.scrollView.contentInset.bottom, self.scrollView.contentInset.right)];
         }
