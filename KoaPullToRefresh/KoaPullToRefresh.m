@@ -108,6 +108,7 @@ static char UIScrollViewPullToRefreshView;
         view.pullToRefreshActionHandler = actionHandler;
         view.scrollView = self;
         view.backgroundColor = customBackgroundColor;
+        view.userInteractionEnabled = NO;
         [self addSubview:view];
         
         view.originalTopInset = self.contentInset.top;
